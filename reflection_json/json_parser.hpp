@@ -3,6 +3,9 @@
 #include <vector>
 #include "reflection.h"
 
+template <class... T>
+constexpr bool always_false = false;
+
 template <class T, class V = void>
 class is_direct_serialization : public std::false_type {};
 
@@ -127,7 +130,7 @@ class JsonRefelction {
         Policy::set(root, name, std::forward<decltype(field)>(field));
       } else if constexpr (std::is_array<
                                std::remove_reference_t<decltype(field)>>{}) {
-        static_assert(std::false_type, "array can't support");
+        static_assert(always_false<type>, "array can't support");
       } else if constexpr (is_seq_container<type>) {
         value_type tmp;
         int idx = 0;
@@ -171,7 +174,7 @@ class JsonRefelction {
         Policy::get(root, name, field);
       } else if constexpr (std::is_array<
                                std::remove_reference_t<decltype(field)>>{}) {
-        static_assert(std::false_type, "array can't support");
+        static_assert(always_false<type>, "array can't support");
       } else if constexpr (is_seq_container<type>) {
         Policy::for_each_array(root, name, [&](const_ref_value_type node) {
           if constexpr (is_direct_serialization<type>{} ||
