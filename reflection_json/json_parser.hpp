@@ -1,6 +1,7 @@
 #pragma once
 #include <list>
 #include <vector>
+
 #include "reflection.h"
 
 template <class... T>
@@ -57,8 +58,8 @@ struct JsonBase {
   using const_ref_value_type = typename T::const_ref_value_type;
   using ref_value_type = typename T::ref_value_type;
 
-  template <class U>
-  static constexpr bool is_json_value_v = T::is_json_value_v<U>;
+  template <typename U>
+  static constexpr bool is_json_value_v = T::template is_json_value<U>::value;
 
   value_type static inline json_parser(const std::string& row_str) noexcept {
     return T::json_parser(row_str);
@@ -66,27 +67,27 @@ struct JsonBase {
 
   template <class U>
   void static inline constexpr set(ref_value_type value, U&& field) noexcept {
-    T::set<U>(value, std::forward<U>(field));
+    T::set(value, std::forward<U>(field));
   }
 
   template <class U>
   void static inline constexpr set(ref_value_type value,
                                    const std::string& name,
                                    U&& field) noexcept {
-    T::set<U>(value, name, std::forward<U>(field));
+    T::set(value, name, std::forward<U>(field));
   }
 
   template <class U>
   void static inline constexpr get(const_ref_value_type value,
                                    U&& field) noexcept {
-    T::get<U>(value, std::forward<U>(field));
+    T::get(value, std::forward<U>(field));
   }
 
   template <class U>
   void static inline constexpr get(const_ref_value_type value,
                                    const std::string& name,
                                    U&& field) noexcept {
-    T::get<U>(value, name, std::forward<U>(field));
+    T::get(value, name, std::forward<U>(field));
   }
 
   template <class U>
@@ -126,7 +127,7 @@ class JsonRefelction {
     ForEachField(obj, [&root](auto&& field, auto&& name) {
       using type = std::decay_t<decltype(field)>;
       if constexpr (is_direct_serialization<type>{} ||
-                    Policy::is_json_value_v<type>) {
+                    Policy::template is_json_value_v<type>) {
         Policy::set(root, name, std::forward<decltype(field)>(field));
       } else if constexpr (std::is_array<
                                std::remove_reference_t<decltype(field)>>{}) {
@@ -136,9 +137,9 @@ class JsonRefelction {
         int idx = 0;
         for (auto& ele : field) {
           if constexpr (is_direct_serialization<type>{} ||
-                        Policy::is_json_value_v<type>) {
+                        Policy::template is_json_value_v<type>) {
             value_type value;
-            Policy::set<typename type::value_type>(value, ele);
+            Policy::set(value, ele);
             Policy::set_array_index(tmp, idx, value);
           } else {
             Policy::set_array_index(
@@ -159,7 +160,6 @@ class JsonRefelction {
     return Policy::to_string(to_json(obj));
   }
 
-  template <>
   static inline std::string to_string(const_ref_value_type obj) noexcept {
     return Policy::to_string(obj);
   }
@@ -170,7 +170,7 @@ class JsonRefelction {
     ForEachField(value, [&root](auto&& field, auto&& name) {
       using type = std::decay_t<decltype(field)>;
       if constexpr (is_direct_serialization<type>{} ||
-                    Policy::is_json_value_v<type>) {
+                    Policy::template is_json_value_v<type>) {
         Policy::get(root, name, field);
       } else if constexpr (std::is_array<
                                std::remove_reference_t<decltype(field)>>{}) {
@@ -178,7 +178,7 @@ class JsonRefelction {
       } else if constexpr (is_seq_container<type>) {
         Policy::for_each_array(root, name, [&](const_ref_value_type node) {
           if constexpr (is_direct_serialization<type>{} ||
-                        Policy::is_json_value_v<type>) {
+                        Policy::template is_json_value_v<type>) {
             value_type tmp;
             Policy::get(node, tmp);
             field.push_back(tmp);

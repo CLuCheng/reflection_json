@@ -1,25 +1,32 @@
 #pragma once
-#include "json_parser.hpp"
 #include "json/json.h"
+#include "json_parser.hpp"
 
 namespace details {
+namespace json_cpp_meta {
+template <class U>
+struct is_json_value {
+  static bool constexpr value = false;
+};
+
+template <>
+struct is_json_value<::Json::Value> {
+  static bool constexpr value = true;
+};
+}  // namespace json_cpp_meta
+
 struct JsonCPP {
   using value_type = ::Json::Value;
   using const_ref_value_type = const value_type&;
   using ref_value_type = value_type&;
 
-  template <class U>
-  struct is_json_value {
-    static bool constexpr value = false;
-  };
-  template <>
-  struct is_json_value<::Json::Value> {
-    static bool constexpr value = true;
-  };
+  friend JsonBase<JsonCPP>;
 
  public:
+
   template <class U>
-  static constexpr bool is_json_value_v = is_json_value<U>::value;
+  using is_json_value =
+      details::json_cpp_meta::is_json_value<U>;
 
   value_type static inline json_parser(const std::string& row_str) noexcept {
 #pragma warning(disable : 4996)
@@ -38,14 +45,13 @@ struct JsonCPP {
   void static inline constexpr set(ref_value_type value,
                                    const std::string& name,
                                    T&& field) noexcept {
-    set<T>(value[name], std::forward<T>(field));
+    set(value[name], std::forward<T>(field));
   }
 
   template <class T>
   void static inline constexpr get(const_ref_value_type value,
                                    T&& field) noexcept {
-    if (value.isNull())
-      return;
+    if (value.isNull()) return;
     if constexpr (std::is_same_v<std::decay_t<T>, int>) {
       field = value.asInt();
     } else if constexpr (std::is_same_v<std::decay_t<T>, std::string>) {
@@ -67,25 +73,22 @@ struct JsonCPP {
   void static inline constexpr get(const_ref_value_type value,
                                    const std::string& name,
                                    T&& field) noexcept {
-    if (value.isNull())
-      return;
-    get<T>(value[name], std::forward<T>(field));
+    if (value.isNull()) return;
+    get(value[name], std::forward<T>(field));
   }
 
   template <class Function>
   void static inline constexpr for_each_array(const_ref_value_type value,
-                                         const std::string& name,
-                                         Function&& fn) {
-    if (value.isNull())
-      return;
+                                              const std::string& name,
+                                              Function&& fn) {
+    if (value.isNull()) return;
     for_each_array(value[name], std::forward<Function>(fn));
   }
 
   template <class Function>
   void static inline constexpr for_each_array(const_ref_value_type value,
                                               Function&& fn) {
-    if (value.isNull())
-      return;
+    if (value.isNull()) return;
     for (int i = 0; i < value.size(); i++) {
       fn(value[i]);
     }
