@@ -115,7 +115,7 @@ struct JsonBase {
 };
 
 template <class Policy>
-class JsonRefelction {
+class JsonReflection {
   using value_type = typename Policy::value_type;
   using const_ref_value_type = typename Policy::const_ref_value_type;
   using ref_value_type = typename Policy::ref_value_type;
@@ -144,12 +144,12 @@ class JsonRefelction {
           } else {
             Policy::set_array_index(
                 tmp, idx++,
-                JsonRefelction::to_json<typename type::value_type>(ele));
+                JsonReflection::to_json<typename type::value_type>(ele));
           }
         }
         Policy::set(root, name, std::move(tmp));
       } else {
-        Policy::set(root, name, JsonRefelction::to_json<type>(field));
+        Policy::set(root, name, JsonReflection::to_json<type>(field));
       }
     });
     return root;
@@ -184,11 +184,11 @@ class JsonRefelction {
             field.push_back(tmp);
           } else {
             field.push_back(
-                JsonRefelction::from_json<typename type::value_type>(node));
+                JsonReflection::from_json<typename type::value_type>(node));
           }
         });
       } else {
-        field = JsonRefelction::from_json<type>(root[name]);
+        field = JsonReflection::from_json<type>(root[name]);
       }
     });
     return value;
