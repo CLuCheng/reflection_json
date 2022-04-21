@@ -11,9 +11,9 @@ int main() {
   persons.arr.push_back(Person{"Rose", 24, false});
   persons.arr.push_back(Person{"Jack", 25, true});
 
-  auto value = JsonReflection::to_json<Persons>(persons);
-  auto ref_b = JsonReflection::from_json<Persons>(value);
-  std::cout << JsonReflection::to_string(value) << std::endl;
+  auto json_value = JsonReflection::to_json<Persons>(persons);
+  auto value = JsonReflection::from_json<Persons>(json_value);
+  std::cout << JsonReflection::to_string(json_value) << std::endl;
 
   return 0;
 }
