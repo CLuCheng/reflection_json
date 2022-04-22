@@ -136,8 +136,8 @@ class JsonReflection {
         value_type tmp;
         int idx = 0;
         for (auto& ele : field) {
-          if constexpr (is_direct_serialization<type>{} ||
-                        Policy::template is_json_value_v<type>) {
+          if constexpr (is_direct_serialization<typename type::value_type>{} ||
+                        Policy::template is_json_value_v<typename type::value_type>) {
             value_type value;
             Policy::set(value, ele);
             Policy::set_array_index(tmp, idx, value);
@@ -177,8 +177,8 @@ class JsonReflection {
         static_assert(always_false<type>, "array can't support");
       } else if constexpr (is_seq_container<type>) {
         Policy::for_each_array(root, name, [&](const_ref_value_type node) {
-          if constexpr (is_direct_serialization<type>{} ||
-                        Policy::template is_json_value_v<type>) {
+          if constexpr (is_direct_serialization<typename type::value_type>{} ||
+                        Policy::template is_json_value_v<typename type::value_type>) {
             value_type tmp;
             Policy::get(node, tmp);
             field.push_back(tmp);
