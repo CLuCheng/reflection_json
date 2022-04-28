@@ -138,7 +138,7 @@ class JsonReflection {
         for (auto& ele : field) {
           if constexpr (is_direct_serialization<typename type::value_type>{} ||
                         Policy::template is_json_value_v<typename type::value_type>) {
-            value_type value;
+		    typename type::value_type value;
             Policy::set(value, ele);
             Policy::set_array_index(tmp, idx, value);
           } else {
@@ -179,7 +179,7 @@ class JsonReflection {
         Policy::for_each_array(root, name, [&](const_ref_value_type node) {
           if constexpr (is_direct_serialization<typename type::value_type>{} ||
                         Policy::template is_json_value_v<typename type::value_type>) {
-            value_type tmp;
+			typename type::value_type tmp;
             Policy::get(node, tmp);
             field.push_back(tmp);
           } else {
