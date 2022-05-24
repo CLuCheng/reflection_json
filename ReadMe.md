@@ -5,8 +5,8 @@
 
 ```
 git clone https://github/Clucheng/reflection_json
-mkdir build && cd build
-cmake ..
+cd reflection_json
+cmake -B build
 ```
 
 
